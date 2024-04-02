@@ -1,3 +1,7 @@
+import mysql.connector
+from dotenv import load_dotenv
+import os
+
 class DbActions:
     def __init__(self):
         try:
