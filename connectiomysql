@@ -1,0 +1,250 @@
+class DbActions:
+    def __init__(self):
+        try:
+            load_dotenv() #Charge env document                                           
+            host = os.getenv("HOST") #set mysql host
+            user = os.getenv("USER") #set mysql user
+            password = os.getenv("PASS") #set user´s password
+            database = os.getenv("DATABASE") #set database
+            self.cnn = mysql.connector.connect(host=host, user=user, 
+            passwd=password, database=database) #set mysql conection 
+            self.__table = "" #database table
+            self.__columns = [] #database columns
+            self.__condition = "" #sql request condition if exists
+            self.__values = [] #values to insert in the database
+        except: #If you can not conect to the data base will exit of the class
+            print("No Connection...")
+            exit() #will exit 
+    
+    #Database conection 
+    def __search_all_of_a_table(self, table): #local function to search a table, include all columns
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("SELECT * FROM {}".format(table)) #execute the mysql request
+            data = cur.fetchall() #all results will fetch in the data variable
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #will return False 
+        return data #if everything is correct, will return data from line 32
+    
+    def __search_all_by_condition(self, table,condition): #local function to search a table and all columns with a condition
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("SELECT * FROM {} WHERE {}".format(table,condition)) #execute mysql request
+            data = cur.fetchall() #all results will fetch in the data variable
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #will return False  
+        return data #if everything is correct, will return data from line 42
+    
+    def __search_by_columns(self,columns,table): #local function to search a table and the columns you want
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("SELECT {} FROM {}".format(columns,table)) #execute mysql request
+            data = cur.fetchall() #all results will fetch in the data variable
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #will return False  
+        return data #if everything is correct, will return data from line 52
+    
+    def __search_by_columns_and_condition(self,columns,table,condition): #local function to search a table and columns you want, with a condition
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("SELECT {} FROM {} WHERE {}".format(columns,table,condition)) #execute mysql request 
+            data = cur.fetchall() #all results will fetch in the data variable
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #will return False  
+        return data #if everything is correct, will return data from line 61
+    
+    def __insert(self,table,columns,values): #action of insert dates in to the database
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("Insert into {} {} VALUES {}".format(table,columns,values)) #execute mysql request
+            self.cnn.commit() #complete the excecution of the mysql request  
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #return False
+        return True #return True  
+    
+    def __delete_by_condition(self,table,condition): #action of delete a row of a table
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("DELETE FROM {} WHERE {}".format(table,condition)) #execute mysql request
+            n=cur.rowcount #count of the rows affected
+            self.cnn.commit() #complete the excecution of the mysql request  
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #return False
+        return n  #return of the rows affected
+    
+    def __update_row(self,table,values,condition): #action of update a row of a table
+        try:
+            cur = self.cnn.cursor() #using the cnn from line 17 will open the sql connection 
+            cur.execute("UPDATE {} SET {} WHERE {}".format(table,values,condition)) #execute mysql request
+            n=cur.rowcount #count of the rows affected
+            self.cnn.commit() #complete the excecution of the mysql request   
+            cur.close() #the mysql connection will close for more security
+        except: #if exist an error in the execution of the mysql request
+            return False #return False
+        return n #return of the rows affected 
+        
+    
+    #Setters
+    def set_table(self,table): #setting table of the database
+        self.__table = table
+    
+    def set_columns(self,*columns): #you can add more columns to the columns list
+        for col in columns:
+            self.__columns.append(col) #adding columns to the columns variable
+    
+    def set_condition(self,condition): #setting the condition of a consult
+        self.__condition = condition
+    
+    def set_values(self,*values): #adding values to insert or update
+        for val in values:
+            self.__values.append(val) #adding values to the values variable    
+    
+    
+    #Getters
+    def get_table(self): #getting the name of the table
+        return self.__table
+          
+    def get_columns(self): #getting all columns of the variable
+        return self.__columns
+    
+    def get_specific_columns(self,*places): #getting a specific columns of the columns variable
+        columns_return = [] #list of the columns selected
+        for place in places:
+            try:
+                columns_selected = self.__columns[place] #getting values form column indexed of columns variable
+                columns_return.append(columns_selected) # appending the column indexed in to the new list to return
+            except:
+                pass #if does not exist the column index pass to the next column index number
+        return columns_return #return new columns list selected
+    
+    def get_condition(self): #getting the condition
+        return self.__condition
+    
+    def get_values(self): #getting the list of values
+        return self.__values
+
+    def get_specific_values(self,*place): #returns a specific value from the values list
+        values_return = [] #list selected values
+        for i in place:
+            try:
+                value_selected = self.__values[i] #geting value indexed of values variable
+                values_return.append(value_selected) #appending the value indexed in to the new values list
+            except:
+                pass #if does not exist the value indexed pass to the next number
+        return values_return #return the list of values selected
+
+        
+    
+    
+    #Methods
+    def __columns_to_string(self): #returns the list of columns in to a string to put to the msql consult
+        to_string = self.__columns #getting the columns variable
+        string_val = "" #creating a string variable
+        for string in to_string: 
+            string_val += string+"," #converting each column from the column in to a string and adding a coma
+        string_val = string_val[:-1] #when all the columns are stringed, will reamin a come, this line delete the last coma
+        return string_val #return the list of columns to add in to the consult of database
+    
+    def __values_to_tuple_string(self): #returns the list of values in to a string to put to the msql consult
+        to_string = self.__values # getting the values variable
+        string_val = "(" #creating the string variable and adding the "(" who goes in to the msql consult
+        for string in to_string:
+            if isinstance(string, str): #if the value is string 
+                string_val += "'"+string+"'," #will add in to the string variable this "'{val}',"
+            elif isinstance(string,int) | isinstance(string,float): #but if the value indexed is an int or float
+                string_val += str(string)+"," #will add in to the string variable this "{val},"
+        string_val = string_val[:-1] #when all values are stringed, this line will delete the last ","
+        string_val += ")" #to close the string variable, we are adding the ")" 
+        return string_val #return the stringed list of values
+    
+    def __columns_to_insert(self): #prepare the string columns to insert
+        columns = self.__columns_to_string() #returns the list of columns in to a string to put to the msql consult
+        columns = f"({columns})" #adding the string column the "()"
+        return columns #Return the string to the msql request
+    
+    def __remove_columns(self,*columns): #remove columns of columns list
+        remove_list = []
+        for col in columns:
+            ref=self.__columns[col]
+            remove_list.append(ref)
+        for remove in remove_list:
+            self.__columns.remove(remove)
+        return True
+    
+    def __set_to_update(self): #prepare the string of columns and values to the mysql
+        values = self.__values #get values variable
+        columns = self.__columns #get columns variable
+        set_update="" #creating the string to update 
+        if len(values) == len(columns): #if the lengh the lists are the same 
+            length = len(values) #get the lengh of the list
+            for i in range(length): # for in index of each list
+                set_update +=columns[i]+"=" #adding to the string to update 
+                if type(values[i])== str: #if the value indexed is a string 
+                    set_update += "'"+values[i]+"'," #add "'{val}',"
+                else: #if is not
+                    set_update += str(values[i])+"," #add "{val},"
+            set_update = set_update[:-1] #we eliminate the last ","
+            return set_update #return the string variable to use in the mysql 
+        else:
+            return False #if the lenght are not the same return False
+    
+    #Actions
+    def select_all(self): #public fuction to select all of a table
+        data = self.__search_all_of_a_table(self.__table) #local function to search a table, include all columns
+        if data: 
+            return data #if isset return the list
+        else:
+            return False #is null return False
+    
+    def select_all_by_condition(self): #public function to select all of a table by condition
+        data = self.__search_all_by_condition(self.__table,self.__condition) #local function to search a table and all columns with a condition
+        if data:
+            return data
+        else:
+            return False
+        
+    def select_by_columns(self): #public function wich select all of the selected columns of a table
+        columns = self.__columns_to_string() #returns the list of columns in to a string to put to the msql consult
+        data = self.__search_by_columns(columns,self.__table) #local function to search a table and the columns you want
+        if data:
+            return data
+        else:
+            return False
+    
+    def select_by_columns_and_conditions(self): #public function wich select the columns and put a condition of a table
+        columns = self.__columns_to_string() #returns the list of columns in to a string to put to the msql consult
+        data = self.__search_by_columns_and_condition(columns,self.__table,self.__condition) #local function to search a table and columns you want, with a condition
+        if data:
+            return data
+        else:
+            return False
+        
+    def insert_value(self): #public function wich insert a value in to a database
+        columns = self.__columns_to_insert() #prepare the string columns to insert
+        values = self.__values_to_tuple_string() #returns the list of values in to a string to put to the msql consult
+        res = self.__insert(self.__table,columns,values) #action of insert dates in to the database
+        if res:
+            return res
+        else:
+            return False
+    
+    def delete_value(self): #public fuction wich delete a value from a database
+        data = self.__delete_by_condition(self.__table,self.__condition) #action of delete a row of a table
+        if data:
+            return data
+        else:
+            return False
+    
+    def update_values(self): #public function wich update a value form a database
+        values=self.__set_to_update() #prepare the string of columns and values to the mysql
+        data = self.__update_row(self.__table,values,self.__condition) #action of update a row of a table
+        if data:
+            return data
+        else:
+            return False
