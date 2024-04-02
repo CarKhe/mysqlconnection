@@ -1,0 +1,14 @@
+#Examples
+var = DbActions() #creating object
+var.set_table("tbl_departamento") #setting table
+var.set_columns("departamento") #setting column
+var.set_condition("id_departamento=1") #setting condition
+result = var.select_by_columns_and_conditions() #execute msql request
+print(result[0][0]) #result
+
+var = DbActions() #creating object
+var.set_table("tbl_departamento") #setting table
+var.set_columns("departamento")  #setting column
+var.set_values("CARRETERA") #setting values
+result = var.insert_value() #execute msql request
+print(result) #result
